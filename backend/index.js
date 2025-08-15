@@ -1,4 +1,4 @@
-console.log("--- BACKEND CODE v1.0 FINAL ---"); // A good way to know our latest code is running
+console.log("--- BACKEND CODE v1.1 FINAL ---");
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -6,34 +6,39 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = 3001;
 
-// --- MIDDLEWARE ---
 app.use(cors());
-app.use(express.json()); // This is the line that was missing - it allows our server to read JSON from requests
+app.use(express.json());
 
-// --- DATABASE CONNECTION ---
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 // --- API ROUTES ---
 
-// Health check endpoint
+// 1. Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
     const client = await pool.connect();
     const time = await client.query('SELECT NOW()');
     client.release();
-    res.json({
-      status: 'ok',
-      message: 'Backend is running!',
-      db_time: time.rows[0].now
-    });
+    res.json({ status: 'ok', message: 'Backend is running!', db_time: time.rows[0].now });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'DB connection failed', error: err.message });
   }
 });
 
-// CREATE a new product
+// 2. GET all products <-- THIS IS THE MISSING PIECE
+app.get('/api/products', async (req, res) => {
+  try {
+    const allProducts = await pool.query('SELECT * FROM products ORDER BY id ASC');
+    res.json(allProducts.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: 'Server error while fetching products' });
+  }
+});
+
+// 3. CREATE a new product
 app.post('/api/products', async (req, res) => {
   try {
     const { name, sku, price, stock_quantity } = req.body;
@@ -46,7 +51,7 @@ app.post('/api/products', async (req, res) => {
     );
     res.status(201).json(newProduct.rows[0]);
   } catch (err) {
-    if (err.code === '23505') { // This code means 'unique_violation'
+    if (err.code === '23505') {
       return res.status(409).json({ error: 'A product with this SKU already exists.' });
     }
     console.error(err.message);
