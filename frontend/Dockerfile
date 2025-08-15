@@ -1,18 +1,14 @@
-# Stage 1: Build the React application
-FROM node:18-alpine AS builder
+FROM node:18-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
+
 COPY . .
-RUN npm run build
 
-# Stage 2: Serve the built app with Nginx
-FROM nginx:1.25-alpine
+# Expose the Vite dev server port
+EXPOSE 5173
 
-# Copy the built files from the 'builder' stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
+# The command to run the development server
+CMD ["npm", "run", "dev"]

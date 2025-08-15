@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function AddProductForm({ backendUrl }) {
+function AddProductForm({ backendUrl, onProductAdded }) {
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [price, setPrice] = useState('');
@@ -10,12 +10,7 @@ function AddProductForm({ backendUrl }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage('Adding product...');
-    const productData = {
-      name,
-      sku,
-      price: parseFloat(price),
-      stock_quantity: parseInt(stockQuantity, 10),
-    };
+    const productData = { name, sku, price: parseFloat(price), stock_quantity: parseInt(stockQuantity, 10) };
 
     try {
       const response = await fetch(`${backendUrl}/api/products`, {
@@ -24,17 +19,16 @@ function AddProductForm({ backendUrl }) {
         body: JSON.stringify(productData),
       });
       const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to add product');
-      }
+      if (!response.ok) { throw new Error(result.error || 'Failed to add product'); }
+
       setMessage(`Successfully added product: ${result.name} (ID: ${result.id})`);
+      onProductAdded(); // This line will trigger the refresh
       setName('');
       setSku('');
       setPrice('');
       setStockQuantity('');
     } catch (error) {
       setMessage(`Error: ${error.message}`);
-      console.error('Submission error:', error);
     }
   };
 

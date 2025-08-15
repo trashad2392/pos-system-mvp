@@ -1,32 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-function ProductList({ backendUrl }) {
-  const [products, setProducts] = useState([]);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    // This function will fetch the products from our API
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/api/products`);
-        if (!response.ok) {
-          throw new Error('Data fetching failed');
-        }
-        const data = await response.json();
-        setProducts(data); // Store the fetched products in our state
-      } catch (err) {
-        setError(err.message);
-        console.error("Error fetching products:", err);
-      }
-    };
-
-    fetchProducts();
-  }, []); // The empty array [] means this runs only once when the page loads
-
-  if (error) {
-    return <div>Error loading products: {error}</div>;
-  }
-
+// It now receives the list of products directly as a prop
+function ProductList({ products }) {
   return (
     <div>
       <h2>Product List</h2>
@@ -41,7 +16,8 @@ function ProductList({ backendUrl }) {
           </tr>
         </thead>
         <tbody>
-          {products.map((product) => (
+          {/* We check if products is an array before mapping it */}
+          {Array.isArray(products) && products.map((product) => (
             <tr key={product.id}>
               <td>{product.id}</td>
               <td>{product.name}</td>
