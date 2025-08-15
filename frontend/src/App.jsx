@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import AddProductForm from './AddProductForm'; // <-- 1. IMPORT our form component
 
-// Make sure this URL is correct for your current workspace!
-const BACKEND_URL = 'https://3001-trashad2392-possystemmv-xp62vrshay0.ws-eu121.gitpod.io';
+// Make sure this is your current, live backend URL from the 'Ports' tab
+const BACKEND_URL = 'https://3001-trashad2392-possystemmv-t244vrr9wjx.ws-eu121.gitpod.io';
 
 function App() {
-  const [message, setMessage] = useState('Loading backend status...');
+  const [healthMessage, setHealthMessage] = useState('Loading backend status...');
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/health`)
       .then(response => response.json())
       .then(data => {
-        setMessage(`Backend status: ${data.status} - DB Time: ${data.db_time}`);
+        setHealthMessage(`Backend status: ${data.status} - DB Time: ${data.db_time}`);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
-        setMessage('Failed to connect to backend. Is it running?');
+        setHealthMessage('Failed to connect to backend. Is it running?');
       });
   }, []);
 
@@ -23,8 +24,13 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>POS System Status</h1>
-        <p>{message}</p>
+        <p>{healthMessage}</p>
       </header>
+      <hr />
+      <main>
+        {/* 2. USE our form component here */}
+        <AddProductForm backendUrl={BACKEND_URL} />
+      </main>
     </div>
   )
 }
