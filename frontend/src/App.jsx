@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import AddProductForm from './AddProductForm'; // <-- 1. IMPORT our form component
+import AddProductForm from './AddProductForm';
+import ProductList from './ProductList';
 
-// Make sure this is your current, live backend URL from the 'Ports' tab
-const BACKEND_URL = 'https://3001-trashad2392-possystemmv-t244vrr9wjx.ws-eu121.gitpod.io';
+// We will update this with the live URL once the server is running
+const BACKEND_URL = 'https://3001-trashad2392-possystemmv-t244vrr9wjx.ws-eu121.gitpod.io'; 
 
 function App() {
   const [healthMessage, setHealthMessage] = useState('Loading backend status...');
 
   useEffect(() => {
+    if (BACKEND_URL === 'placeholder') {
+      setHealthMessage('Backend URL not set. Please update App.jsx');
+      return;
+    }
     fetch(`${BACKEND_URL}/api/health`)
       .then(response => response.json())
       .then(data => {
@@ -28,8 +33,9 @@ function App() {
       </header>
       <hr />
       <main>
-        {/* 2. USE our form component here */}
         <AddProductForm backendUrl={BACKEND_URL} />
+        <hr />
+        <ProductList backendUrl={BACKEND_URL} />
       </main>
     </div>
   )

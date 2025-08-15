@@ -1,4 +1,4 @@
-console.log("--- BACKEND CODE VERSION 4 ---");
+console.log("--- BACKEND CODE v1.0 FINAL ---"); // A good way to know our latest code is running
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -6,13 +6,18 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = 3001;
 
+// --- MIDDLEWARE ---
 app.use(cors());
+app.use(express.json()); // This is the line that was missing - it allows our server to read JSON from requests
 
-// This uses the DATABASE_URL provided by Docker Compose
+// --- DATABASE CONNECTION ---
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// --- API ROUTES ---
+
+// Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
     const client = await pool.connect();
@@ -28,6 +33,28 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// CREATE a new product
+app.post('/api/products', async (req, res) => {
+  try {
+    const { name, sku, price, stock_quantity } = req.body;
+    if (!name || !sku || price === undefined || stock_quantity === undefined) {
+      return res.status(400).json({ error: 'Name, SKU, price, and stock_quantity are required' });
+    }
+    const newProduct = await pool.query(
+      'INSERT INTO products (name, sku, price, stock_quantity) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, sku, price, stock_quantity]
+    );
+    res.status(201).json(newProduct.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') { // This code means 'unique_violation'
+      return res.status(409).json({ error: 'A product with this SKU already exists.' });
+    }
+    console.error(err.message);
+    res.status(500).json({ error: 'Server error while creating product' });
+  }
+});
+
+// --- START SERVER ---
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend server listening on http://localhost:${PORT}`);
 });
